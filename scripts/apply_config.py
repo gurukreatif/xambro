@@ -4,7 +4,7 @@ apply_config.py — Patch Android source files sebelum Gradle build.
 Membaca environment variables yang dikirim dari GitHub Actions workflow_dispatch.
 """
 
-import os, re, sys, textwrap
+import os, re, sys, textwrap, base64
 
 def env(key, default=""):
     return os.environ.get(key, default).strip()
@@ -17,6 +17,7 @@ EXIT_PIN        = env("EXIT_PIN",        "1234")
 HEADER_COLOR    = env("HEADER_COLOR",    "1A3A5C").lstrip("#")
 BUTTON_COLOR    = env("BUTTON_COLOR",    "2E7BF6").lstrip("#")
 PACKAGE_ID      = env("PACKAGE_ID",      "id.emes.exambrowser")
+HEADER_IMAGE    = env("HEADER_IMAGE",    "")
 VERSION_NAME    = env("VERSION_NAME",    "1.1.0")
 
 print("=" * 56)
@@ -97,6 +98,28 @@ write(colors_path, f"""<?xml version="1.0" encoding="utf-8"?>
     <color name="colorProgressBar">#{BUTTON_COLOR}</color>
 </resources>
 """)
+
+# ── 2b. Header background image (opsional) ────────────────────────────────
+HEADER_BG_PATH = "app/src/main/res/drawable/header_bg.png"
+if HEADER_IMAGE.strip():
+    try:
+        # Bersihkan data URI prefix jika ada (misal: "data:image/png;base64,...")
+        b64 = HEADER_IMAGE.strip()
+        if "," in b64:
+            b64 = b64.split(",", 1)[1]
+        # Decode dan simpan sebagai PNG
+        img_bytes = base64.b64decode(b64)
+        os.makedirs(os.path.dirname(HEADER_BG_PATH), exist_ok=True)
+        with open(HEADER_BG_PATH, "wb") as f:
+            f.write(img_bytes)
+        print(f"  ✓ {HEADER_BG_PATH} ({len(img_bytes)//1024} KB)")
+    except Exception as e:
+        print(f"  ⚠ Gagal decode header image: {e} — pakai warna default")
+else:
+    # Hapus header_bg.png jika ada (agar app pakai warna solid)
+    if os.path.exists(HEADER_BG_PATH):
+        os.remove(HEADER_BG_PATH)
+        print(f"  ✓ header_bg.png dihapus — pakai warna solid")
 
 # ── 3. bg_button_primary.xml ───────────────────────────────────────────────
 write("app/src/main/res/drawable/bg_button_primary.xml", f"""<?xml version="1.0" encoding="utf-8"?>

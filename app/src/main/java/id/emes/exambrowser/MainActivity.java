@@ -1,10 +1,12 @@
 package id.emes.exambrowser;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,8 +29,11 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
+        // ── Cek apakah ada header background image ────────────────────────
+        applyHeaderBackground();
+
         etUrl = findViewById(R.id.etUrl);
-        Button btnStart       = findViewById(R.id.btnStart);
+        Button btnStart        = findViewById(R.id.btnStart);
         LinearLayout btnScanQr = findViewById(R.id.btnScanQr);
 
         btnStart.setOnClickListener(v -> launchExam(etUrl.getText().toString().trim()));
@@ -37,6 +42,36 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, QRScanActivity.class);
             startActivityForResult(intent, QR_SCAN_REQUEST);
         });
+    }
+
+    /**
+     * Jika file header_bg ada di drawable dan bukan placeholder warna,
+     * tampilkan sebagai background gambar dengan overlay gelap agar teks tetap terbaca.
+     */
+    private void applyHeaderBackground() {
+        try {
+            // Coba load drawable header_bg (PNG yang di-inject saat build)
+            int resId = getResources().getIdentifier("header_bg", "drawable", getPackageName());
+            if (resId == 0) return; // tidak ada, pakai warna default
+
+            Drawable d = getResources().getDrawable(resId, getTheme());
+            if (d == null) return;
+
+            ImageView imgBg        = findViewById(R.id.imgHeaderBg);
+            View      overlay      = findViewById(R.id.headerOverlay);
+            LinearLayout content   = findViewById(R.id.headerContent);
+
+            // Set gambar
+            imgBg.setImageDrawable(d);
+            imgBg.setVisibility(View.VISIBLE);
+            overlay.setVisibility(View.VISIBLE);
+
+            // Hapus background solid dari konten agar transparan di atas gambar
+            content.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+
+        } catch (Exception e) {
+            // Gagal load gambar — pakai warna solid default, tidak masalah
+        }
     }
 
     @Override

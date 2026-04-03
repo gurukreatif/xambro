@@ -196,6 +196,24 @@
     .pin-ok { background: #DCFCE7; color: #16A34A; }
 
     .divider { height: 1px; background: var(--border); margin: 6px 0 20px; }
+
+    /* ─── HEADER BG PANEL ─────────────────────────────────────────── */
+    .hbg-tabs { display: flex; gap: 0; border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+    .hbg-tab  { flex: 1; padding: 9px 0; text-align: center; font-size: 12.5px; font-weight: 700; cursor: pointer; border: none; background: none; font-family: inherit; color: var(--muted); transition: all .15s; }
+    .hbg-tab.active { background: var(--accent); color: #fff; }
+    .hbg-pane { display: none; }
+    .hbg-pane.active { display: block; }
+
+    .img-drop-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 18px; cursor: pointer; transition: border-color .2s, background .2s; text-align: center; }
+    .img-drop-zone:hover { border-color: var(--accent); background: #F0F7FF; }
+    .img-drop-zone input[type=file] { display: none; }
+    .img-preview-box { width: 100%; height: 90px; border-radius: 10px; background: #1A3A5C; overflow: hidden; position: relative; margin-bottom: 10px; }
+    .img-preview-box img { width:100%; height:100%; object-fit:cover; display:none; }
+    .img-preview-box .overlay-badge { position:absolute;bottom:6px;right:8px;background:rgba(0,0,0,.5);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px; }
+    .overlay-slider-wrap { display:flex; align-items:center; gap:10px; margin-top:8px; }
+    .overlay-slider-wrap label { font-size:11.5px; font-weight:600; color:var(--navy2); white-space:nowrap; }
+    .overlay-slider-wrap input[type=range] { flex:1; accent-color:var(--accent); }
+    .overlay-slider-wrap span { font-size:11.5px; font-weight:700; color:var(--accent); width:32px; text-align:right; }
     .section-sep { height: 16px; }
 
     /* TOAST */
@@ -584,6 +602,72 @@ function syncColor(hexId, colorId) {
   }
 }
 
+// ─── HEADER BACKGROUND IMAGE ─────────────────────────────────────────────────
+let headerBgDataUrl = null;
+let headerBgMode    = 'color'; // 'color' | 'image'
+
+function switchHeaderTab(mode) {
+  headerBgMode = mode;
+  document.getElementById('tabColor').classList.toggle('active', mode === 'color');
+  document.getElementById('tabImage').classList.toggle('active', mode === 'image');
+  document.getElementById('tabColorBtn').classList.toggle('active', mode === 'color');
+  document.getElementById('tabImageBtn').classList.toggle('active', mode === 'image');
+  updatePreview();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const hbgInput = document.getElementById('hbgInput');
+  if (hbgInput) hbgInput.addEventListener('change', e => {
+    if (e.target.files[0]) readHeaderBg(e.target.files[0]);
+  });
+  // drag & drop
+  const z = document.getElementById('hbgDropZone');
+  if (z) {
+    z.addEventListener('dragover', e => { e.preventDefault(); z.style.borderColor='var(--accent)'; });
+    z.addEventListener('dragleave', () => { z.style.borderColor=''; });
+    z.addEventListener('drop', e => { e.preventDefault(); z.style.borderColor=''; if (e.dataTransfer.files[0]) readHeaderBg(e.dataTransfer.files[0]); });
+  }
+});
+
+function readHeaderBg(file) {
+  const r = new FileReader();
+  r.onload = ev => {
+    headerBgDataUrl = ev.target.result;
+    // Update preview box
+    const img = document.getElementById('hbgPreviewImg');
+    img.src = headerBgDataUrl; img.style.display = 'block';
+    document.getElementById('hbgOverlayBadge').style.display = '';
+    document.getElementById('hbgFileName').textContent = file.name;
+    document.getElementById('hbgRemoveBtn').style.display = '';
+    document.getElementById('overlaySliderWrap').style.display = 'flex';
+    updateOverlay();
+    updatePreview();
+  };
+  r.readAsDataURL(file);
+}
+
+function removeHeaderBg() {
+  headerBgDataUrl = null;
+  document.getElementById('hbgPreviewImg').src = '';
+  document.getElementById('hbgPreviewImg').style.display = 'none';
+  document.getElementById('hbgOverlayBadge').style.display = 'none';
+  document.getElementById('hbgFileName').textContent = 'Pilih gambar background header';
+  document.getElementById('hbgRemoveBtn').style.display = 'none';
+  document.getElementById('overlaySliderWrap').style.display = 'none';
+  document.getElementById('hbgPreviewBox').style.background = '#1A3A5C';
+  updatePreview();
+}
+
+function updateOverlay() {
+  const v = document.getElementById('overlayOpacity').value;
+  document.getElementById('overlayOpacityVal').textContent = v + '%';
+  const hex = Math.round(v * 2.55).toString(16).padStart(2,'0').toUpperCase();
+  if (headerBgDataUrl) {
+    document.getElementById('hbgPreviewBox').style.background = '';
+  }
+  updatePreview();
+}
+
 // ─── LOGO ────────────────────────────────────────────────────────────────────
 document.getElementById('logoInput').addEventListener('change', e => {
   if (e.target.files[0]) readLogo(e.target.files[0]);
@@ -628,8 +712,24 @@ function updatePreview() {
   const ac   = document.getElementById('colorAccent').value;
   document.getElementById('simAppName').textContent  = name;
   document.getElementById('simSubtitle').textContent = sub;
-  document.getElementById('simHeader').style.background = hc;
   document.getElementById('simBtn').style.background = ac;
+
+  const simHeader = document.getElementById('simHeader');
+  if (headerBgMode === 'image' && headerBgDataUrl) {
+    const ov = document.getElementById('overlayOpacity').value;
+    const hex = Math.round(ov * 2.55).toString(16).padStart(2,'0').toUpperCase();
+    simHeader.style.background = '';
+    simHeader.style.backgroundImage = `url(${headerBgDataUrl})`;
+    simHeader.style.backgroundSize  = 'cover';
+    simHeader.style.backgroundPosition = 'center';
+    simHeader.style.position = 'relative';
+    // overlay via pseudo — kita pakai box-shadow inset sebagai workaround
+    simHeader.style.boxShadow = `inset 0 0 0 1000px #000000${hex}`;
+  } else {
+    simHeader.style.backgroundImage = '';
+    simHeader.style.boxShadow = '';
+    simHeader.style.background = hc;
+  }
   updateSummary(); updateAllCode();
 }
 
@@ -746,7 +846,9 @@ function saveConfig() {
     versionName: document.getElementById('versionName').value,
     colorPrimary: document.getElementById('colorPrimary').value,
     colorAccent: document.getElementById('colorAccent').value,
-    logoDataUrl
+    logoDataUrl,
+    headerBgDataUrl,
+    headerBgMode
   };
   localStorage.setItem('ezambroConfig', JSON.stringify(cfg));
   const ind = document.getElementById('savedIndicator');
@@ -911,6 +1013,14 @@ async function triggerBuild() {
   showBuildLog('dim', '📡 Mengirim workflow_dispatch ke GitHub Actions…\n');
 
   try {
+    // Siapkan header image: jika mode gambar dan ada data, kirim base64
+    let headerImgB64 = '';
+    if (headerBgMode === 'image' && headerBgDataUrl) {
+      // Kirim sebagai data URI lengkap, apply_config.py akan strip prefix-nya
+      // Tapi GitHub Actions inputs max ~65KB — kompres dulu jika terlalu besar
+      headerImgB64 = await compressImageForWorkflow(headerBgDataUrl);
+    }
+
     const res = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflow}/dispatches`,
       {
@@ -928,6 +1038,7 @@ async function triggerBuild() {
             app_description: sub,
             exit_pin:        pin,
             header_color:    hc,
+            header_image:    headerImgB64,
             button_color:    ac,
             package_id:      pkg,
             version_name:    ver
@@ -956,6 +1067,28 @@ async function triggerBuild() {
     showBuildLog('err', `❌ Error jaringan: ${e.message}\n`);
     btn.disabled = false; btn.textContent = '🚀 Build APK Sekarang';
   }
+}
+
+// ─── COMPRESS IMAGE FOR WORKFLOW INPUT ───────────────────────────────────────
+// GitHub Actions workflow_dispatch inputs dibatasi ~65KB per field.
+// Kita compress gambar ke max 800x300 JPEG quality 70.
+async function compressImageForWorkflow(dataUrl) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX_W = 800, MAX_H = 300;
+      let w = img.width, h = img.height;
+      if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
+      if (h > MAX_H) { w = Math.round(w * MAX_H / h); h = MAX_H; }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      // JPEG quality 0.70 untuk kurangi ukuran
+      resolve(c.toDataURL('image/jpeg', 0.70));
+    };
+    img.onerror = () => resolve('');
+    img.src = dataUrl;
+  });
 }
 
 // ─── POLL BUILD STATUS ────────────────────────────────────────────────────────

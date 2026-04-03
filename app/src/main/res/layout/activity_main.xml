@@ -5,69 +5,91 @@
     android:orientation="vertical"
     android:background="@color/colorBackground">
 
-    <!-- ══ HEADER ══ -->
-    <LinearLayout
+    <!-- ══ HEADER (FrameLayout agar bisa overlay bg image + konten) ══ -->
+    <FrameLayout
+        android:id="@+id/headerFrame"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_header"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:paddingTop="48dp"
-        android:paddingBottom="28dp">
+        android:layout_height="wrap_content">
 
-        <!-- Logo -->
+        <!-- Background image layer (default: gone, ditampilkan oleh Java jika ada header_bg) -->
         <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:src="@mipmap/ic_launcher"
-            android:scaleType="fitCenter"
-            android:contentDescription="Logo" />
+            android:id="@+id/imgHeaderBg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/header_bg_default"
+            android:visibility="gone"
+            android:contentDescription="Header Background" />
 
-        <!-- App name -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:text="@string/app_title"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:gravity="center" />
+        <!-- Dark overlay agar teks tetap terbaca di atas gambar -->
+        <View
+            android:id="@+id/headerOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#88000000"
+            android:visibility="gone" />
 
-        <!-- Subtitle -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/app_description"
-            android:textColor="#99FFFFFF"
-            android:textSize="12.5sp"
-            android:gravity="center" />
-
-        <!-- Secure badge -->
+        <!-- Konten header -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:id="@+id/headerContent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:background="@drawable/bg_badge_secure"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:gravity="center">
+            android:background="@drawable/bg_header"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingTop="48dp"
+            android:paddingBottom="28dp">
+
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@mipmap/ic_launcher"
+                android:scaleType="fitCenter"
+                android:contentDescription="Logo" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🛡  SECURE EXAM MODE"
-                android:textColor="@color/colorPrimary"
-                android:textSize="10sp"
+                android:layout_marginTop="14dp"
+                android:text="@string/app_title"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
                 android:textStyle="bold"
-                android:letterSpacing="0.06" />
-        </LinearLayout>
+                android:gravity="center" />
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/app_description"
+                android:textColor="#99FFFFFF"
+                android:textSize="12.5sp"
+                android:gravity="center" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_badge_secure"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🛡  SECURE EXAM MODE"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.06" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </FrameLayout>
 
     <!-- ══ BODY ══ -->
     <ScrollView
@@ -105,7 +127,6 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="8dp" />
 
-                <!-- Input row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
@@ -129,7 +150,6 @@
                         android:imeOptions="actionGo"
                         android:singleLine="true" />
 
-                    <!-- Scanner button -->
                     <LinearLayout
                         android:id="@+id/btnScanQr"
                         android:layout_width="50dp"
@@ -148,10 +168,8 @@
                             android:textSize="22sp"
                             android:textStyle="bold" />
                     </LinearLayout>
-
                 </LinearLayout>
 
-                <!-- Divider -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -172,7 +190,6 @@
                         android:layout_weight="1" android:background="@color/colorDivider" />
                 </LinearLayout>
 
-                <!-- Start button -->
                 <Button
                     android:id="@+id/btnStart"
                     android:layout_width="match_parent"
@@ -182,7 +199,6 @@
                     android:textColor="@color/white"
                     android:textSize="15sp"
                     android:textStyle="bold" />
-
             </LinearLayout>
 
             <!-- Security feature card -->
@@ -205,7 +221,6 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="12dp" />
 
-                <!-- Feature rows -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="38dp"
                     android:background="@drawable/bg_feature_row" android:gravity="center_vertical"
                     android:paddingStart="12dp" android:paddingEnd="12dp" android:layout_marginBottom="6dp">
@@ -265,7 +280,6 @@
                         android:text="Screenshot &amp; perekaman diblokir"
                         android:textColor="@color/colorTextPrimary" android:textSize="13sp" />
                 </LinearLayout>
-
             </LinearLayout>
 
         </LinearLayout>
